@@ -1,14 +1,17 @@
+using System;
+using App.Api.Repositories;
+using App.Config;
+using App.Db;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using App.Config;
 using Newtonsoft.Json.Converters;
-using App.Db;
 
-namespace App
+namespace App.Common
 {
     public class Startup
     {
@@ -24,7 +27,6 @@ namespace App
         {
             // MVC Options
             services
-                .AddMemoryCache()
                 .AddMvc()
                 .AddJsonOptions(options => {
                     options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
@@ -38,6 +40,8 @@ namespace App
             services
                 .AddEntityFrameworkMySql()
                 .AddDbContext<AppDb>(ServiceLifetime.Scoped);
+            services
+                .AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             // Add CORS if enabled
             if (AppConfig.Config["Frontend:CORS:Host"] != null){
@@ -50,6 +54,11 @@ namespace App
                             .AllowAnyMethod());
                 });
             }
+
+            if (PixelFetcher.Flusher == null)
+                throw new InvalidOperationException("Problem starting pixel flusher");
+            if (ImageFetcher.Fetcher == null)
+                throw new InvalidOperationException("Problem starting image fetcher");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

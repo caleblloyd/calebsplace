@@ -23,11 +23,9 @@ namespace App.Migrations
 
                     b.Property<byte[]>("Color");
 
-                    b.Property<DateTime>("Created")
-                        .ValueGeneratedOnAdd();
+                    b.Property<DateTime>("Created");
 
-                    b.Property<DateTime>("Updated")
-                        .ValueGeneratedOnAddOrUpdate();
+                    b.Property<DateTime>("Updated");
 
                     b.HasKey("X", "Y");
 

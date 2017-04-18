@@ -1,6 +1,8 @@
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using System.Threading;
+using App.Api.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
@@ -22,37 +24,51 @@ namespace App.Api.Models{
 
 	    public int Y { get; set; }
 
+
+	    private byte[] _color = {0xFF, 0xFF, 0xFF};
 	    [JsonIgnore]
-	    public byte[] Color { get; set; } = {0xFF, 0xFF, 0xFF};
+	    public byte[] Color
+	    {
+	        get => _color;
+	        set
+	        {
+	            _color = value;
+	            Updated = DateTime.UtcNow;
+	            if (Created == default(DateTime))
+	                Created = Updated;
+	        }
+	    }
 
 	    [NotMapped]
-	    public string ColorStr => BitConverter.ToString(Color).Replace("-", string.Empty);
+	    public string ColorStr
+	    {
+	        get => BitConverter.ToString(Color).Replace("-", string.Empty);
+	        set => Color = Enumerable.Range(0, value.Length / 2)
+	            .Select(i => Convert.ToByte(value.Substring(i * 2, 2), 16))
+	            .ToArray();
+	    }
 
-	    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 	    [JsonIgnore]
-	    public DateTime Created { get; set; }
-
-	    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-	    [JsonIgnore]
+	    public DateTime Created { get; private set; }
+	    
 	    public DateTime Updated { get; set; }
 
-	    private bool _added;
+	    [JsonIgnore]
 	    [NotMapped]
+	    public bool IsNew => Created == default(DateTime);
 
-	    public bool Added => Created != default(DateTime) || _added;
-
-	    private DateTime _touched = DateTime.UtcNow;
+	    [JsonIgnore]
 	    [NotMapped]
-
-	    public DateTime Touched => Added ? _touched : default(DateTime);
+	    public ulong Key => ~(((ulong) Updated.Ticks & 0xFFFFFFFFFFF00000) + (ulong) X * PixelFetcher.Pixels + (ulong) Y);
 
 	    [JsonIgnore]
 	    public readonly SemaphoreSlim Lock = new SemaphoreSlim(1);
 
-	    public void MarkTouched()
+	    public void Copy(Pixel other)
 	    {
-	        _added = true;
-	        _touched = DateTime.UtcNow;
+	        ColorStr = other.ColorStr;
+	        Created = other.Created;
+	        Updated = other.Updated;
 	    }
 	}
 
@@ -64,8 +80,8 @@ namespace App.Api.Models{
             {
                 entity.HasKey(m => new {m.X, m.Y});
             });
-
         }
 	}
     
 }
+

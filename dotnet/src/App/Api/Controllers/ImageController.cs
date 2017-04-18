@@ -1,9 +1,6 @@
 //using App.Db;
-//using App.Api.Models;
-//using System.Linq;
 //using System.Threading.Tasks;
 //using Microsoft.AspNetCore.Mvc;
-//using Microsoft.EntityFrameworkCore;
 //
 //namespace App.Api.Controllers
 //{

@@ -4,7 +4,7 @@ using App.Db;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 
-namespace App
+namespace App.Common
 {
     public class Program
     {

@@ -8,7 +8,7 @@ using App.Db;
 namespace App.Migrations
 {
     [DbContext(typeof(AppDb))]
-    [Migration("20170418020144_initial")]
+    [Migration("20170418140920_initial")]
     partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,11 +24,9 @@ namespace App.Migrations
 
                     b.Property<byte[]>("Color");
 
-                    b.Property<DateTime>("Created")
-                        .ValueGeneratedOnAdd();
+                    b.Property<DateTime>("Created");
 
-                    b.Property<DateTime>("Updated")
-                        .ValueGeneratedOnAddOrUpdate();
+                    b.Property<DateTime>("Updated");
 
                     b.HasKey("X", "Y");
 

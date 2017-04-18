@@ -1,7 +1,7 @@
 {
     "Data": {
         "EntityFramework": {
-            "MaxBatchSize": 10
+            "MaxBatchSize": 100
         }
     },
     "Frontend": {
@@ -14,7 +14,7 @@
             "LogLevel": {
             "Default": "Error",
             "System": "Error",
-            "Microsoft": "Information"
+            "Microsoft": "Error"
         }
     }
 }

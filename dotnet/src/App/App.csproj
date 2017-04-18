@@ -23,4 +23,9 @@
   <ItemGroup>
     <Folder Include="Migrations" />
   </ItemGroup>
+  <PropertyGroup>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <ThreadPoolMinThreads>4</ThreadPoolMinThreads>
+  </PropertyGroup>
 </Project>

@@ -15,10 +15,8 @@ namespace App.Migrations
                     X = table.Column<int>(nullable: false),
                     Y = table.Column<int>(nullable: false),
                     Color = table.Column<byte[]>(nullable: true),
-                    Created = table.Column<DateTime>(nullable: false)
-                        .Annotation("MySql:ValueGeneratedOnAdd", true),
+                    Created = table.Column<DateTime>(nullable: false),
                     Updated = table.Column<DateTime>(nullable: false)
-                        .Annotation("MySql:ValueGeneratedOnAddOrUpdate", true)
                 },
                 constraints: table =>
                 {
