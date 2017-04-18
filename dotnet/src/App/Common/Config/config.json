@@ -14,7 +14,7 @@
             "LogLevel": {
             "Default": "Error",
             "System": "Error",
-            "Microsoft": "Error"
+            "Microsoft": "Information"
         }
     }
 }

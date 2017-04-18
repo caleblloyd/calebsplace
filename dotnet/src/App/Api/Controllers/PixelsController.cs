@@ -1,10 +1,11 @@
+using System;
+using System.Collections.Generic;
 using App.Db;
-using App.Api.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Linq;
 using System.Threading.Tasks;
+using App.Api.Models;
 
 namespace App.Api.Controllers
 {
@@ -12,53 +13,60 @@ namespace App.Api.Controllers
     public class PixelsController : Controller
     {
 		private readonly IMemoryCache _cache;
-	    private readonly AppDb _db;
 
 	    public PixelsController(AppDb db, IMemoryCache cache)
 	    {
 			_cache = cache;
-		    _db = db;
 	    }
 		
         // GET api/pixels/5
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetAsync(int id)
+        [HttpGet("{batchNumber}")]
+        public async Task<IActionResult> GetAsync(int batchNumber, [FromQuery]DateTime since)
         {
-			var model = await _db.Authors.FindAsync(id);
-			await _db.Entry(model).Collection(m => m.Posts).Query().OrderByDescending(m => m.Id).ToListAsync();
-			if (model != null)
-			{
-				return new OkObjectResult(model);
-			}
-			return NotFound();
+            var batch = await PixelFetcher.FetchBatchAsync(_cache, batchNumber);
+            var data = new List<Pixel>();
+            var lastTouched = default(DateTime);
+
+            for (var x = 0; x < PixelFetcher.PixelsInBatch; x++)
+            {
+                for (var y = 0; y < PixelFetcher.Pixels; y++)
+                {
+                    var pixel = batch[x, y];
+                    if (pixel.Touched > lastTouched)
+                        lastTouched = pixel.Touched;
+                    if (since == default(DateTime) || pixel.Touched > since)
+                        data.Add(pixel);
+                }
+            }
+
+            return new OkObjectResult(new
+            {
+                LastTouched = lastTouched,
+                Data = data
+            });
         }
 
-        // PUT api/async/5
-        [HttpPost("{id}")]
-        public async Task<IActionResult> UpdateAsync(int id, [FromBody] Author body)
+        // POST api/pixels/001/002
+        [HttpPost("{x}/{y}")]
+        public async Task<IActionResult> UpdateAsync(int x, int y, [FromBody] PixelColorRequest pixelColorRequest)
         {
-			var model = await _db.Authors.FindAsync(id);
-			if (model != null)
-			{
-				model.Name = body.Name;
-				await _db.SaveChangesAsync();
-				return new OkObjectResult(model);
-			}
-			return NotFound();
-        }
+            if (x < 0 || x >= PixelFetcher.Pixels || y < 0 || y >= PixelFetcher.Pixels)
+                return BadRequest($"X and Y must be between 0 and {PixelFetcher.Pixels}");
 
-        // DELETE api/async/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAsync(int id)
-        {
-			var model = await _db.Authors.FindAsync(id);
-			if (model != null)
-			{
-				_db.Authors.Remove(model);
-				await _db.SaveChangesAsync();
-				return Ok();
-			}
-			return NotFound();
+            if (string.IsNullOrWhiteSpace(pixelColorRequest.Color) || pixelColorRequest.Color.Length != 6)
+                return BadRequest("Color must be 6 hex characters");
+
+            var color = Enumerable.Range(0, pixelColorRequest.Color.Length / 2)
+                .Select(i => Convert.ToByte(pixelColorRequest.Color.Substring(i * 2, 2), 16))
+                .ToArray();
+
+			await PixelFetcher.UpdatePixelAsync(_cache, x, y, color);
+			return Ok();
         }
+    }
+
+    public class PixelColorRequest
+    {
+        public string Color;
     }
 }
