@@ -1,0 +1,15 @@
+{
+    "Data": {
+        "MySql": {
+            "Connection": {
+                "host_file": "/etc/secrets/calebsplace-db/host",
+                "port_file": "/etc/secrets/calebsplace-db/port",
+                "user id_file": "/etc/secrets/calebsplace-db/user",
+                "password_file": "/etc/secrets/calebsplace-db/pass",
+                "database": "calebsplace_alpha",
+                "ssl mode": "required",
+                "certificate file": "/etc/secrets/calebsplace-db/cert"
+            }
+        }
+    }
+}

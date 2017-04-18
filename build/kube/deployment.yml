@@ -1,0 +1,36 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: calebsplace-alpha
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: calebsplace-alpha
+    spec:
+      containers:
+      - name: nginx
+        imagePullPolicy: Always
+        image: gcr.io/caleb-lloyd/calebsplace-nginx:1
+        env:
+        - name: DEVENV
+          value: alpha
+        ports:
+        - containerPort: 80
+      - name: dotnet
+        imagePullPolicy: Always
+        image: gcr.io/caleb-lloyd/calebsplace-dotnet:1
+        env:
+        - name: DEVENV
+          value: alpha
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - name: calebsplace-db
+          mountPath: /etc/secrets/calebsplace-db
+          readOnly: true
+      volumes:
+      - name: calebsplace-db
+        secret:
+          secretName: calebsplace-db

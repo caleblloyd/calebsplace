@@ -1,0 +1,12 @@
+version: "2"
+
+services:
+  dotnet:
+    build: ./dotnet
+    image: "gcr.io/caleb-lloyd/calebsplace-dotnet:${TAG}"
+  nginx:
+    build: ./nginx
+    image: "gcr.io/caleb-lloyd/calebsplace-nginx:${TAG}"
+  ui-ssr:
+    build: ./ui-ssr
+    image: "gcr.io/caleb-lloyd/calebsplace-ui-ssr:${TAG}"

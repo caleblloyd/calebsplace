@@ -1,0 +1,53 @@
+version: "2"
+
+services:
+
+  ui:
+    build: ./build/docker/dev/ui
+    container_name: cp-dev-ui
+    environment:
+      - DEVENV=dev
+    volumes:
+      - ./ui:/ui
+
+  nginx:
+    build: ./build/docker/dev/nginx
+    container_name: cp-dev-nginx
+    environment:
+      - DEVENV=dev
+    links:
+      - dotnet
+      - ui
+    ports:
+      - "48000:8000"
+
+  dotnet:
+    build: ./build/docker/dev/dotnet
+    container_name: cp-dev-dotnet
+    environment:
+      - DEVENV=dev
+      - DOTNET_USE_POLLING_FILE_WATCHER=true
+    links:
+      - db
+    ports:
+      - "48010:5000"
+    volumes:
+      - ./dotnet:/mnt/dotnet
+
+  db:
+    image: mysql:5.7.17
+    container_name: cp-dev-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=test
+    ports:
+      - "48012:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:4.6
+    container_name: cp-dev-phpmyadmin
+    environment:
+      - MYSQL_ROOT_PASSWORD=test
+    links:
+      - db
+    ports:
+    - "48011:80"
