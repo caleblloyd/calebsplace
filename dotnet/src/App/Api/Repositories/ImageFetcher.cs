@@ -23,6 +23,7 @@ namespace App.Api.Repositories
             var pixelsUpdatedSince = PixelsUpdatedSince.FromStream(await response.Content.ReadAsStreamAsync());
             _lastUpdated = pixelsUpdatedSince.LastUpdated;
             Image.UpdateBatch(pixelsUpdatedSince.Pixels);
+            //Console.WriteLine($"{_batchNumber} updated {pixelsUpdatedSince.Pixels.Count}");
         }
         
         public static HttpClient HttpClient = new HttpClient();

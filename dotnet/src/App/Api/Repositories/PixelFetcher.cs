@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using App.Api.Models;
 using App.Db;
 using Microsoft.EntityFrameworkCore;
+using MySql.Data.MySqlClient;
 
 namespace App.Api.Repositories
 {
@@ -26,35 +28,26 @@ namespace App.Api.Repositories
             LazyPixelBatchPairReset();
         }
 
-        protected Lazy<Task<PixelBatchPair>> LazyPixelBatchPair;
+        protected Lazy<Task<PixelBatch>> LazyPixelBatch;
 
         protected void LazyPixelBatchPairReset()
         {
-            LazyPixelBatchPair = new Lazy<Task<PixelBatchPair>>(async () =>
+            LazyPixelBatch = new Lazy<Task<PixelBatch>>(async () =>
             {
-                ICollection<Pixel> existingPixels;
-                await DbLock.WaitAsync();
-                try
+                using (var db = new AppDb())
                 {
-                    existingPixels = await Db.Pixels
+                    var existingPixels = await db.Pixels
+                        .AsNoTracking()
                         .Where(m => m.X >= _batchNumber * PixelsInBatch && m.X < (_batchNumber + 1) * PixelsInBatch)
                         .OrderBy(m => m.X)
                         .ThenBy(m => m.Y)
                         .ToListAsync();
+                    return new PixelBatch(_batchNumber, existingPixels);
                 }
-                finally
-                {
-                    DbLock.Release();
-                }
-                var memoryBatch = new PixelBatch(_batchNumber, existingPixels, true);
-                var dbBatch = new PixelBatch(_batchNumber, existingPixels, false);
-                return new PixelBatchPair(memoryBatch, dbBatch);
             });
         }
 
-        private static readonly AppDb Db = new AppDb();
-        private static readonly SemaphoreSlim DbLock = new SemaphoreSlim(1);
-        private static readonly ConcurrentQueue<PixelUpdate> Updates = new ConcurrentQueue<PixelUpdate>();
+        private static readonly ConcurrentQueue<Pixel> Updates = new ConcurrentQueue<Pixel>();
 
         private static readonly Lazy<PixelFetcher[]> LazyPixelFetchers = new Lazy<PixelFetcher[]>(() =>
         {
@@ -67,16 +60,16 @@ namespace App.Api.Repositories
         public static async Task<PixelsUpdatedSince> UpdatedSinceAsync(int batchNumber, DateTime since)
         {
             var fetcher = LazyPixelFetchers.Value[batchNumber];
-            var batchPair = await fetcher.LazyPixelBatchPair.Value;
-            return await batchPair.MemoryBatch.UpdatedSinceAsync(since);
+            var batch = await fetcher.LazyPixelBatch.Value;
+            return await batch.UpdatedSinceAsync(since);
         }
 
         public static async Task UpdatePixelAsync(int x, int y, byte[] color)
         {
             var fetcher = LazyPixelFetchers.Value[x / PixelsInBatch];
-            var batchPair = await fetcher.LazyPixelBatchPair.Value;
-            var updatedPixel = await batchPair.MemoryBatch.UpdateAsync(x, y, color);
-            Updates.Enqueue(new PixelUpdate(updatedPixel, batchPair.DbBatch.Find(x, y)));
+            var batch = await fetcher.LazyPixelBatch.Value;
+            var updatedPixel = await batch.UpdateAsync(x, y, color);
+            Updates.Enqueue(updatedPixel);
         }
 
         public static Task Flusher = Task.Run(async () => {
@@ -85,31 +78,60 @@ namespace App.Api.Repositories
                 var task = Task.Delay(TimeSpan.FromSeconds(FlushToDbSeconds));
                 try
                 {
-                    await DbLock.WaitAsync();
-                    try
+                    using (var db = new AppDb())
+                    using (var cmd = db.Database.GetDbConnection().CreateCommand())
                     {
-                        PixelUpdate update;
-                        while (Updates.TryDequeue(out update))
+                        var sql = "INSERT INTO `Pixels` (`X`, `Y`, `Color`, `Created`, `Updated`) VALUES ";
+                        var num = 0;
+                        Pixel pixel;
+                        while (Updates.TryDequeue(out pixel))
                         {
-                            var isNew = update.To.IsNew;
-                            await update.From.Lock.WaitAsync();
+                            if (num > 0)
+                                sql += ", ";
+                            sql += $"(@x{num}, @y{num}, @color{num}, @created{num}, @updated{num})";
+                            await pixel.Lock.WaitAsync();
                             try
                             {
-                                update.To.Copy(update.From);
+                                cmd.Parameters.Add(new MySqlParameter
+                                {
+                                    ParameterName = $"@x{num}",
+                                    Value = pixel.X
+                                });
+                                cmd.Parameters.Add(new MySqlParameter
+                                {
+                                    ParameterName = $"@y{num}",
+                                    Value = pixel.Y
+                                });
+                                cmd.Parameters.Add(new MySqlParameter
+                                {
+                                    ParameterName = $"@color{num}",
+                                    Value = pixel.Color
+                                });
+                                cmd.Parameters.Add(new MySqlParameter
+                                {
+                                    ParameterName = $"@created{num}",
+                                    Value = pixel.Created
+                                });
+                                cmd.Parameters.Add(new MySqlParameter
+                                {
+                                    ParameterName = $"@updated{num}",
+                                    Value = pixel.Updated
+                                });
                             }
                             finally
                             {
-                                update.From.Lock.Release();
+                                pixel.Lock.Release();
                             }
-                            if (isNew)
-                                Db.Pixels.Add(update.To);
-
+                            num++;
                         }
-                        await Db.SaveChangesAsync();
-                    }
-                    finally
-                    {
-                        DbLock.Release();
+                        if (num > 0)
+                        {
+                            sql += " ON DUPLICATE KEY UPDATE `Color` = VALUES(`Color`), `Updated` = VALUES(`Updated`)";
+                            cmd.CommandText = sql;
+                            await db.Database.OpenConnectionAsync();
+                            await cmd.ExecuteNonQueryAsync();
+                            db.Database.CloseConnection();
+                        }
                     }
                 }
                 catch (Exception e)

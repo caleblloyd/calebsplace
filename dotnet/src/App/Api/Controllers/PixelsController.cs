@@ -1,22 +1,22 @@
 using System;
-using System.IO;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using App.Api.Models;
 using App.Api.Repositories;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace App.Api.Controllers
 {
     [Route("api/[controller]")]
     public class PixelsController : Controller
     {
+        private readonly IMemoryCache _cache;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-	    public PixelsController(IHttpContextAccessor httpContextAccessor)
+	    public PixelsController(IMemoryCache cache, IHttpContextAccessor httpContextAccessor)
 	    {
+	        _cache = cache;
 	        _httpContextAccessor = httpContextAccessor;
 	    }
 		
@@ -50,18 +50,20 @@ namespace App.Api.Controllers
         [HttpGet("sse/{since}")]
         public async Task SseAsync(DateTime since)
         {
+            since = DateTime.UtcNow - TimeSpan.FromSeconds(10);
             var response = _httpContextAccessor.HttpContext.Response;
             response.Headers.Add("Content-Type", "text/event-stream");
 
             for(var i = 0; i < 20; i++)
             {
                 var task = Task.Delay(TimeSpan.FromSeconds(1));
-                var pixelsUpdatedSince = ImageFetcher.Image.UpdatedSince(since);
-                await response.WriteAsync("data: ");
-                await pixelsUpdatedSince.GetMemoryStream("|").CopyToAsync(response.Body);
-                await response.WriteAsync("\n\n");
+                var pixelsUpdatedSinceList = SseFetcher.UpdatedSinceList(since);
+                foreach (var pixelsUpdatedSince in pixelsUpdatedSinceList)
+                {
+                    await response.WriteAsync("data: " + pixelsUpdatedSince.SseString + "\n\n");
+                    since = pixelsUpdatedSince.LastUpdated;
+                }
                 response.Body.Flush();
-                since = pixelsUpdatedSince.LastUpdated;
                 await task;
             }
         }

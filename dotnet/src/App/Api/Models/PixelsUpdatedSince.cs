@@ -7,6 +7,17 @@ namespace App.Api.Models
 {
     public class PixelsUpdatedSince
     {
+        public PixelsUpdatedSince()
+        {
+            _lazySseString = new Lazy<string>(() =>
+            {
+                using (var reader = new StreamReader(GetMemoryStream("|"), Encoding.UTF8))
+                {
+                    return reader.ReadToEnd();
+                }
+            });
+        }
+
         private DateTime _lastUpdated;
         public DateTime LastUpdated
         {
@@ -14,9 +25,11 @@ namespace App.Api.Models
             set => _lastUpdated = new DateTime(value.Ticks, DateTimeKind.Utc);
         }
 
-        public IEnumerable<Pixel> Pixels;
+        public List<Pixel> Pixels;
 
-        public int Count;
+        private readonly Lazy<string> _lazySseString;
+
+        public string SseString => _lazySseString.Value;
 
         public MemoryStream GetMemoryStream(string seperator = "\n")
         {
@@ -55,7 +68,6 @@ namespace App.Api.Models
                 }
             }
             pixelsUpdatedSince.Pixels = pixels;
-            pixelsUpdatedSince.Count = pixels.Count;
             return pixelsUpdatedSince;
         }
     }

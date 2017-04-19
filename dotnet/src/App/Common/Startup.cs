@@ -27,6 +27,7 @@ namespace App.Common
         {
             // MVC Options
             services
+                .AddMemoryCache()
                 .AddMvc()
                 .AddJsonOptions(options => {
                     options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;

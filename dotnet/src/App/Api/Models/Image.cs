@@ -42,22 +42,25 @@ namespace App.Api.Models
             }
         }
 
-        public PixelsUpdatedSince UpdatedSince(DateTime since)
+        public PixelsUpdatedSince UpdatedSecond(DateTime since)
         {
+            var to = since + TimeSpan.FromSeconds(1);
             var pixels = new List<Pixel>();
-            var lastUpdated = default(DateTime);
             _rwLock.EnterReadLock();
             try
             {
                 foreach (var kvp in Sorted)
                 {
                     var pixel = kvp.Value;
-                    if (pixel.Updated > lastUpdated)
-                        lastUpdated = pixel.Updated;
-                    if (since == default(DateTime) || pixel.Updated > since)
-                        pixels.Add(pixel);
+                    if (pixel.Updated > since)
+                    {
+                        if (pixel.Updated <= to)
+                            pixels.Add(pixel);
+                    }
                     else
+                    {
                         break;
+                    }
                 }
             }
             finally
@@ -66,7 +69,7 @@ namespace App.Api.Models
             }
             return new PixelsUpdatedSince
             {
-                LastUpdated = lastUpdated,
+                LastUpdated = to,
                 Pixels = pixels
             };
         }

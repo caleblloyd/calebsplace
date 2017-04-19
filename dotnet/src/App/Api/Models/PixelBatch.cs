@@ -23,24 +23,13 @@ namespace App.Api.Models
             return _batchNumber * PixelFetcher.PixelsInBatch + x;
         }
 
-        public PixelBatch(int batchNumber, IEnumerable<Pixel> existingPixels, bool copy)
+        public PixelBatch(int batchNumber, IEnumerable<Pixel> existingPixels)
         {
             _batchNumber = batchNumber;
             _pixels = new Pixel[PixelFetcher.PixelsInBatch, PixelFetcher.Pixels];
 
             foreach (var existingPixel in existingPixels)
-            {
-                if (copy)
-                {
-                    var pixel = new Pixel(existingPixel.X, existingPixel.Y);
-                    pixel.Copy(existingPixel);
-                    _pixels[CoordinateToBatch(existingPixel.X), existingPixel.Y] = pixel;
-                }
-                else
-                {
-                    _pixels[CoordinateToBatch(existingPixel.X), existingPixel.Y] = existingPixel;
-                }
-            }
+                _pixels[CoordinateToBatch(existingPixel.X), existingPixel.Y] = existingPixel;
 
             for (var x = 0; x < PixelFetcher.PixelsInBatch; x++)
             {
