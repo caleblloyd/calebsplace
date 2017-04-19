@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+app-lb &
+nginx -g "daemon off;"

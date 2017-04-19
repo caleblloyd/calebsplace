@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+cd /dotnet/app
+
+app-warmup &
+dotnet App.dll

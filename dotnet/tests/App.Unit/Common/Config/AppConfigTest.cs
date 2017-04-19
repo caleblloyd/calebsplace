@@ -9,7 +9,7 @@ namespace App.Unit.Common.Config
         [Fact]
         public void Test1()
         {
-            Assert.Equal(10, Convert.ToInt32(AppConfig.Config["Data:EntityFramework:MaxBatchSize"]));
+            Assert.Equal(100, Convert.ToInt32(AppConfig.Config["Data:EntityFramework:MaxBatchSize"]));
         }
     }
 }

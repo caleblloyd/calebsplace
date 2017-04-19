@@ -14,4 +14,5 @@ dotnet restore
 # migrate and watch app for changes
 cd src/App
 dotnet run -c Debug migrate
+app-warmup &
 dotnet watch run -c Debug

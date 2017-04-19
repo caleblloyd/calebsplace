@@ -13,6 +13,7 @@ namespace App.Api.Controllers
         [HttpGet("{batchNumber}")]
         public async Task<FileStreamResult> GetAsync(int batchNumber, [FromQuery]DateTime since)
         {
+            Console.WriteLine($"api/internal/{batchNumber}");
             var pixelsUpdatedSince = await PixelFetcher.UpdatedSinceAsync(batchNumber, since);
             return new FileStreamResult(pixelsUpdatedSince.GetMemoryStream(), "text/plain");
         }

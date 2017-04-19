@@ -21,6 +21,7 @@ namespace App.Api.Controllers
         [HttpPost("{x}/{y}")]
         public async Task<IActionResult> UpdateAsync(int x, int y, [FromBody] PixelColorRequest pixelColorRequest)
         {
+            Console.WriteLine($"api/pixels/{x}/{y}");
             if (x < 0 || x >= PixelFetcher.Pixels || y < 0 || y >= PixelFetcher.Pixels)
                 return BadRequest($"X and Y must be between 0 and {PixelFetcher.Pixels}");
 

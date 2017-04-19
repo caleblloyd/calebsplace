@@ -1,13 +1,13 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: calebsplace-alpha
+  name: calebsplace-prod
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: calebsplace-alpha
+        app: calebsplace-prod
     spec:
       containers:
       - name: nginx
@@ -15,7 +15,7 @@ spec:
         image: gcr.io/caleb-lloyd/calebsplace-nginx:1
         env:
         - name: DEVENV
-          value: alpha
+          value: prod
         ports:
         - containerPort: 80
       - name: dotnet
@@ -23,7 +23,7 @@ spec:
         image: gcr.io/caleb-lloyd/calebsplace-dotnet:1
         env:
         - name: DEVENV
-          value: alpha
+          value: prod
         ports:
         - containerPort: 5000
         volumeMounts:

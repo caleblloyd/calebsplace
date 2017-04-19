@@ -2,7 +2,7 @@
 cd $(dirname $0)
 
 display_usage() {
-    echo -e "\nUsage:\n$0 [alpha|beta] [version]\n"
+    echo -e "\nUsage:\n$0 [prod] [version]\n"
 }
 
 # check whether user had supplied -h or --help . If yes display usage
@@ -13,7 +13,7 @@ then
 fi
 
 # check number of arguments
-if [ $# -ne 2 ] || ( [ $1 != "alpha" ] && [ $1 != "beta" ] )
+if [ $# -ne 2 ] || ( [ $1 != "prod" ] )
 then
     display_usage
     exit 1
@@ -33,10 +33,10 @@ mv ../../../dotnet/src/App/Common/publish dotnet/stage/dotnet/App
 
 # copy nginx assets
 echo "Building frontend Assets"
-rm -rf ../../../ui/dist/* ../../../ui/dist-ssr/*
-docker exec -it cp-dev-ui app-publish
-rm -rf nginx/stage/var/www/*
-cp -r ../../../ui/dist/* nginx/stage/var/www
+rm -rf nginx/stage/*
+cp -r ../dev/nginx/stage/* nginx/stage/*
+mkdir -p nginx/stage/var/www
+cp -r ../../../ui/* nginx/stage/var/www
 
 # build images
 echo "Building Images"

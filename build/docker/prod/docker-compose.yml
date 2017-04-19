@@ -1,4 +1,4 @@
-version: "2"
+version: "3"
 
 services:
   dotnet:
@@ -7,6 +7,3 @@ services:
   nginx:
     build: ./nginx
     image: "gcr.io/caleb-lloyd/calebsplace-nginx:${TAG}"
-  ui-ssr:
-    build: ./ui-ssr
-    image: "gcr.io/caleb-lloyd/calebsplace-ui-ssr:${TAG}"

@@ -1,11 +1,11 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: calebsplace-alpha
+  name: calebsplace-prod
 spec:
   ports:
     - name: http
       port: 80
       protocol: TCP
   selector:
-    app: calebsplace-alpha
+    app: calebsplace-prod

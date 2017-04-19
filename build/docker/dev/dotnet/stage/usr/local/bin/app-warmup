@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+until $(curl --output /dev/null --silent --fail http://localhost:5000/api/pixels/draw); do
+    sleep 1
+done
+echo "App Warmup Complete"

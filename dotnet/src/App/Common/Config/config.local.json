@@ -8,6 +8,7 @@
                 "password": "test",
                 "database": "app"
             }
-        }
+        },
+        "InternalApiHost": "http://localhost:5000"
     }
 }

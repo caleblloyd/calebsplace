@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using App.Api.Models;
+using App.Config;
 
 namespace App.Api.Repositories
 {
@@ -19,7 +20,7 @@ namespace App.Api.Repositories
 
         protected async Task FetchAsync()
         {
-            var response = await HttpClient.GetAsync($"http://localhost:5000/api/internal/{_batchNumber}?since={LastUpdated:o}");
+            var response = await HttpClient.GetAsync(AppConfig.Config["Data:InternalApiHost"]+ $"/api/internal/{_batchNumber}?since={LastUpdated:o}");
             var pixelsUpdatedSince = PixelsUpdatedSince.FromStream(await response.Content.ReadAsStreamAsync());
             LastUpdated = pixelsUpdatedSince.LastUpdated;
             if (LastUpdated == default(DateTime))
