@@ -11,13 +11,13 @@ After watching @josephg build [josephg/sephsplace](https://github.com/josephg/se
 
 The backend is a .NET Core project.  Pixels are upated in-memory, and persisted to a MySQL database every second.  The 1000x1000 image can be split into 10 shards, allowing for one or more backend to serve each shard.
 
-There is quie a bit of caching going on in the .NET Core app.  I tested it on a desktop with an 4-core I5-6600K and was able to sustain 333 updates/second while having ~40,000 Server Sent Events listening.  It was not maxing CPUs yet, but it was filling my Gigabit link (load testing was done from a seperate laptop).
+There is quite a bit of caching going on in the .NET Core app.  I tested it on a desktop with an 4-core I5-6600K and was able to sustain 333 updates/second while having ~40,000 Server Sent Events listening.  It was not maxing CPUs yet, but it was filling my Gigabit link (load testing was done from a separate laptop).
 
 Sharding on up to 10 servers with a beefy MySQL backend should be able to maintain over 10K RPS
 
 ## Frontend
 
-@josephg is a better frontend develoepr than I'll ever be, so I lifted his entire frontend.
+@josephg is a better frontend developer than I'll ever be, so I lifted his entire frontend.
 
 My place uses Server Sent Events instead of web sockets.  I wanted to work entirely with HTTP, so that was my option.
 
@@ -27,7 +27,7 @@ Like @josephg, I also had 2 days of free time to work on the server.  Good thing
 
 ## Deployment
 
-Deployment is to a personal Kubernetes cluster that I maintain at Google Compute Engine.  I ended up having to use a "poor man's load balancer" because I needed sticky routes, and that's apparently only available in NGINX plus.  Instead I have a script running that polls Kubernete's DNS service for container IPs, and rewrites it's configuration in a consistent manner.
+Deployment is to a personal Kubernetes cluster that I maintain at Google Compute Engine.  I ended up having to use a "poor man's load balancer" because I needed sticky routes, and that's apparently only available in NGINX plus.  Instead I have a script running that polls the Kubernetes DNS service for container IPs, and rewrites it's configuration in a consistent manner.
 
 As of this writing I have 2 shards running and a dinky MySQL server backing the whole operation.  I added rate limiting in NIGNX, but if things get out of control I may need to beef up my servers.
 
