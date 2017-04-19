@@ -26,6 +26,6 @@
   <PropertyGroup>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-    <ThreadPoolMinThreads>4</ThreadPoolMinThreads>
+    <ThreadPoolMinThreads>16</ThreadPoolMinThreads>
   </PropertyGroup>
 </Project>
