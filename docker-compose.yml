@@ -2,14 +2,6 @@ version: "2"
 
 services:
 
-  ui:
-    build: ./build/docker/dev/ui
-    container_name: cp-dev-ui
-    environment:
-      - DEVENV=dev
-    volumes:
-      - ./ui:/ui
-
   nginx:
     build: ./build/docker/dev/nginx
     container_name: cp-dev-nginx
@@ -17,9 +9,10 @@ services:
       - DEVENV=dev
     links:
       - dotnet
-      - ui
     ports:
       - "48000:8000"
+    volumes:
+      - ./ui:/var/www
 
   dotnet:
     build: ./build/docker/dev/dotnet
