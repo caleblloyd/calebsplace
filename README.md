@@ -13,7 +13,7 @@ The backend is a .NET Core project.  Pixels are upated in-memory, and persisted 
 
 There is quite a bit of caching going on in the .NET Core app.  I tested it on a desktop with an 4-core I5-6600K and was able to sustain 333 updates/second while having ~40,000 Server Sent Events listening.  It was not maxing CPUs yet, but it was filling my Gigabit link (load testing was done from a separate laptop).
 
-Sharding on up to 10 servers with a beefy MySQL backend should be able to maintain over 10K RPS
+Sharding to 10 beefy servers with a beefy MySQL backend should be able to surpass Reddit's target numbers with ease.
 
 ## Frontend
 
