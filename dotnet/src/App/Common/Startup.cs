@@ -55,11 +55,6 @@ namespace App.Common
                             .AllowAnyMethod());
                 });
             }
-
-            if (PixelFetcher.Flusher == null)
-                throw new InvalidOperationException("Problem starting pixel flusher");
-            if (ImageFetcher.Fetcher == null)
-                throw new InvalidOperationException("Problem starting image fetcher");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

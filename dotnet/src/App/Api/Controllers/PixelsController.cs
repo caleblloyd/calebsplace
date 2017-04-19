@@ -47,12 +47,13 @@ namespace App.Api.Controllers
         }
 
         // GET api/pixels/sse
-        [HttpGet("sse/{since}")]
-        public async Task SseAsync(DateTime since)
+        [HttpGet("sse")]
+        public async Task SseAsync()
         {
-            since = DateTime.UtcNow - TimeSpan.FromSeconds(10);
+            var since = DateTime.UtcNow - TimeSpan.FromSeconds(10);
             var response = _httpContextAccessor.HttpContext.Response;
             response.Headers.Add("Content-Type", "text/event-stream");
+            response.Headers.Add("X-Accel-Buffering", "no");
 
             for(var i = 0; i < 20; i++)
             {

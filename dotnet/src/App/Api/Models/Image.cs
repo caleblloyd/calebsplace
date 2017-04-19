@@ -7,19 +7,19 @@ namespace App.Api.Models
 {
     public class Image
     {
+        public readonly Pixel[,] Pixels;
         public readonly SortedDictionary<ulong, Pixel> Sorted = new SortedDictionary<ulong, Pixel>();
         private readonly ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
-        private readonly Pixel[,] _pixels;
 
         public Image()
         {
-            _pixels = new Pixel[PixelFetcher.Pixels, PixelFetcher.Pixels];
+            Pixels = new Pixel[PixelFetcher.Pixels, PixelFetcher.Pixels];
             for (var x = 0; x < PixelFetcher.Pixels; x++)
             {
                 for (var y = 0; y < PixelFetcher.Pixels; y++)
                 {
-                    _pixels[x, y] = new Pixel(x, y);
-                    Sorted.Add(_pixels[x, y].Key, _pixels[x, y]);
+                    Pixels[x, y] = new Pixel(x, y);
+                    Sorted.Add(Pixels[x, y].Key, Pixels[x, y]);
                 }
             }
         }
@@ -31,9 +31,9 @@ namespace App.Api.Models
             {
                 foreach (var pixel in pixels)
                 {
-                    Sorted.Remove(_pixels[pixel.X, pixel.Y].Key);
-                    _pixels[pixel.X, pixel.Y].Copy(pixel);
-                    Sorted.Add(_pixels[pixel.X, pixel.Y].Key, _pixels[pixel.X, pixel.Y]);
+                    Sorted.Remove(Pixels[pixel.X, pixel.Y].Key);
+                    Pixels[pixel.X, pixel.Y].Copy(pixel);
+                    Sorted.Add(Pixels[pixel.X, pixel.Y].Key, Pixels[pixel.X, pixel.Y]);
                 }
             }
             finally
