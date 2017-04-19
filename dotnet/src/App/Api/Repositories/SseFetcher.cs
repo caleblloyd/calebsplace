@@ -7,7 +7,7 @@ namespace App.Api.Repositories
     public class SseFetcher
     {
         private const int SseFetcherCount = 30;
-        private const int SseLeadTime = 5;
+        private const int SseLeadTime = 2;
         protected Lazy<PixelsUpdatedSince> LazyPixelsUpdatedSince;
         private DateTime _lastResetUtc;
         private readonly object Lock = new object();

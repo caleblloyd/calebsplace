@@ -18,21 +18,49 @@ namespace App.Api.Repositories
         public const int Pixels = 1000;
         public const int BatchCount = 10;
         public const int PixelsInBatch = Pixels / BatchCount;
+        private const int ExpiresSeconds = 60;
 
         private const int FlushToDbSeconds = 1;
         private readonly int _batchNumber;
+        private readonly object _lock = new object();
+        private DateTime _lastUsedUtc;
 
         protected PixelFetcher(int batchNumber)
         {
             _batchNumber = batchNumber;
-            LazyPixelBatchPairReset();
+            LazyPixelBatchReset();
         }
 
-        protected Lazy<Task<PixelBatch>> LazyPixelBatch;
-
-        protected void LazyPixelBatchPairReset()
+        protected Task<PixelBatch> PixelBatch
         {
-            LazyPixelBatch = new Lazy<Task<PixelBatch>>(async () =>
+            get
+            {
+                var now = DateTime.UtcNow;
+                if ((now - _lastUsedUtc).TotalSeconds >= ExpiresSeconds)
+                {
+                    lock (_lock)
+                    {
+                        if ((now - _lastUsedUtc).TotalSeconds >= ExpiresSeconds)
+                        {
+                            Console.WriteLine("Expired; resetting");
+                            LazyPixelBatchReset();
+                        }
+                    }
+                }
+                else
+                {
+                    _lastUsedUtc = now;
+                }
+                return _lazyPixelBatch.Value;
+            }
+        }
+
+        private Lazy<Task<PixelBatch>> _lazyPixelBatch;
+
+        protected void LazyPixelBatchReset()
+        {
+            _lastUsedUtc = DateTime.UtcNow;
+            _lazyPixelBatch = new Lazy<Task<PixelBatch>>(async () =>
             {
                 using (var db = new AppDb())
                 {
@@ -60,14 +88,14 @@ namespace App.Api.Repositories
         public static async Task<PixelsUpdatedSince> UpdatedSinceAsync(int batchNumber, DateTime since)
         {
             var fetcher = LazyPixelFetchers.Value[batchNumber];
-            var batch = await fetcher.LazyPixelBatch.Value;
+            var batch = await fetcher.PixelBatch;
             return await batch.UpdatedSinceAsync(since);
         }
 
         public static async Task UpdatePixelAsync(int x, int y, byte[] color)
         {
             var fetcher = LazyPixelFetchers.Value[x / PixelsInBatch];
-            var batch = await fetcher.LazyPixelBatch.Value;
+            var batch = await fetcher.PixelBatch;
             var updatedPixel = await batch.UpdateAsync(x, y, color);
             Updates.Enqueue(updatedPixel);
         }

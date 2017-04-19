@@ -269,6 +269,13 @@ const updateMousePos = (e) => {
   }
 }
 
+// http://stackoverflow.com/a/10073788/1419658
+function pad(n, width, z) {
+  z = z || '0';
+  n = n + '';
+  return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+}
+
 canvas.onmousedown = e => {
   updateMousePos(e)
 
@@ -290,7 +297,15 @@ canvas.onmousedown = e => {
       imgctx.putImageData(imagedata, tx, ty)
 
       // Put this in a timeout to test the speculative drawing.
-      fetch(`edit?x=${tx}&y=${ty}&c=${brush}`, {method: 'POST'}).then(res => {
+      fetch('/api/pixels/' + pad(tx, 3) + '/' + pad(ty, 3), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          Color: pad(color[0].toString(16), 2) + pad(color[1].toString(16), 2) + pad(color[2].toString(16), 2)
+        })
+      }).then(res => {
         // This isn't perfect - it has a race condition if someone else edits the
         // pixel while we're waiting for our edit to go through. But it'll do for
         // now.
@@ -433,11 +448,21 @@ const setConnected = (newStatus) => {
 
 const imagedata = imgctx.createImageData(1, 1)
 const _d = imagedata.data
+
 function rawSet(x, y, c, alpha = 255) {
   const color = palette[c]
   _d[0] = color[0]
   _d[1] = color[1]
   _d[2] = color[2]
+  _d[3] = alpha
+  imgctx.putImageData(imagedata, x, y)
+  draw()
+}
+
+function hexSet(x, y, hexStr, alpha = 255) {
+  _d[0] = parseInt(hexStr.substring(0,2), 16)
+  _d[1] = parseInt(hexStr.substring(2,4), 16)
+  _d[2] = parseInt(hexStr.substring(4,6), 16)
   _d[3] = alpha
   imgctx.putImageData(imagedata, x, y)
   draw()
@@ -455,59 +480,21 @@ const decodeEdit = (buffer, offset) => { // returns x, y, color.
   return [x, y, c]
 }
 
-function connectWS(version) {
-  const origin = 'ws' + location.origin.slice(4)
-  const ws = new WebSocket(`${origin}/sp/ws?from=${version}`)
-  ws.binaryType = 'arraybuffer'
+function connectSSE() {
+  var source = new EventSource('api/pixels/sse')
 
-  ws.onopen = () => {
-    console.log('connection open')
-    setConnected(true)
-  }
-
-  ws.onmessage = (msg) => {
-    //console.log('got message', msg.data, msg)
-    if (typeof msg.data === 'string') {
-      if (msg.data === 'reload') {
-        setConnected(false)
-        ws.close()
-        setTimeout(() => connect(true), 2000)
-      } else if (msg.data === 'refresh') {
-        location.reload()
-      } else console.log(msg.data)
-    } else {
-      // Ok, its an ArrayBuffer. Process all data.
-      const vb = new Uint32Array(msg.data.slice(0, 4))
-      version = vb[0]
-      window._version = version
-
-      const ab = new Uint8Array(msg.data)
-      for (let i = 4; i < ab.length; i+=3) {
-        const [x, y, c] = decodeEdit(ab, i)
-        //console.log('decode', ab[i], ab[i+1], ab[i+2], x, y, c)
-        rawSet(x, y, c)
-      }
+  source.addEventListener('message', function(e) {
+    var updates = e.data.split('|')
+    for (var i=1; i<updates.length;i++){
+      var update = updates[i].split(',')
+      hexSet(parseInt(update[0]), parseInt(update[1]), update[2])
     }
-  }
+  }, false);
 
-  ws.onclose = () => {
-    setConnected(false)
-    setTimeout(() => connectWS(version), 3000)
-  }
-
-  ws.onerror = err => {
-    setConnected(false)
-    console.error('ws error', err)
-
-    // And close and reconnect.
-  }
 }
 
-
 function connect(skipcache) {
-  fetch('current', {cache: skipcache ? 'no-cache' : 'default'}).then(res => {
-    const version = res.headers.get('x-content-version')
-    window._version = version
+  fetch('api/pixels/draw').then(res => {
 
     res.blob().then(blob => {
       const img = new Image
@@ -517,11 +504,10 @@ function connect(skipcache) {
         imgctx.drawImage(img, 0, 0)
         draw()
 
-        connectWS(version)
+        connectSSE()
       }
     })
   })
 }
 
 connect()
-

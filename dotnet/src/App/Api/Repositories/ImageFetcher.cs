@@ -10,7 +10,7 @@ namespace App.Api.Repositories
     {
         private const int FetchImageSeconds = 1;
         private readonly int _batchNumber;
-        private DateTime _lastUpdated = new DateTime(0, DateTimeKind.Utc);
+        protected DateTime LastUpdated = new DateTime(0, DateTimeKind.Utc);
 
         protected ImageFetcher(int batchNumber)
         {
@@ -19,9 +19,11 @@ namespace App.Api.Repositories
 
         protected async Task FetchAsync()
         {
-            var response = await HttpClient.GetAsync($"http://localhost:5000/api/pixels/{_batchNumber}?since={_lastUpdated:o}");
+            var response = await HttpClient.GetAsync($"http://localhost:5000/api/internal/{_batchNumber}?since={LastUpdated:o}");
             var pixelsUpdatedSince = PixelsUpdatedSince.FromStream(await response.Content.ReadAsStreamAsync());
-            _lastUpdated = pixelsUpdatedSince.LastUpdated;
+            LastUpdated = pixelsUpdatedSince.LastUpdated;
+            if (LastUpdated == default(DateTime))
+                LastUpdated = LastUpdated + TimeSpan.FromSeconds(1);
             Image.UpdateBatch(pixelsUpdatedSince.Pixels);
             //Console.WriteLine($"{_batchNumber} updated {pixelsUpdatedSince.Pixels.Count}");
         }

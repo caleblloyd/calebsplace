@@ -8,5 +8,5 @@ DURATION=${2:-5s}
 echo "Rate = $RATE RPS"
 echo "Duration = $DURATION"
 
-echo "GET http://dockerhost:48010/api/image/draw" | vegeta attack -rate="$RATE" -duration="$DURATION" | vegeta report
+echo "GET http://dockerhost:48010/api/pixels/draw" | vegeta attack -rate="$RATE" -duration="$DURATION" | vegeta report
 

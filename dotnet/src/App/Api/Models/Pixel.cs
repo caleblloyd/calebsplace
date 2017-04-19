@@ -49,9 +49,19 @@ namespace App.Api.Models{
 	    }
 
 	    [JsonIgnore]
-	    public DateTime Created { get; private set; }
-	    
-	    public DateTime Updated { get; set; }
+	    private DateTime _created;
+	    public DateTime Created
+	    {
+	        get => _created;
+	        set => _created = new DateTime(value.Ticks, DateTimeKind.Utc);
+	    }
+
+	    private DateTime _updated;
+	    public DateTime Updated
+	    {
+	        get => _updated;
+	        set => _updated = new DateTime(value.Ticks, DateTimeKind.Utc);
+	    }
 
 	    [JsonIgnore]
 	    [NotMapped]

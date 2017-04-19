@@ -102,35 +102,5 @@ namespace App.Api.Models
             };
         }
 
-//        public async Task BatchUpdateAsync(IEnumerable<Pixel> batch)
-//        {
-//            await Lock.WaitAsync();
-//            try
-//            {
-//                foreach (var newPixel in batch)
-//                {
-//                    newPixel.MarkAdded();
-//                    var oldPixel = _pixels[CoordinateToBatch(newPixel.X), newPixel.Y];
-//                    Sorted.Remove(oldPixel.Key);
-//                }
-//                try
-//                {
-//                    Sorted.Remove(pixel.Key);
-//                    pixel.Color = color;
-//                    pixel.MarkTouched();
-//                    Sorted.Add(pixel.Key, pixel);
-//                    return pixel;
-//                }
-//                finally
-//                {
-//                    pixel.Lock.Release();
-//                }
-//            }
-//            finally
-//            {
-//                Lock.Release();
-//            }
-//        }
-
     }
 }

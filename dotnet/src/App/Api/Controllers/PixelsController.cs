@@ -4,29 +4,18 @@ using System.Linq;
 using System.Threading.Tasks;
 using App.Api.Repositories;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace App.Api.Controllers
 {
     [Route("api/[controller]")]
     public class PixelsController : Controller
     {
-        private readonly IMemoryCache _cache;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-	    public PixelsController(IMemoryCache cache, IHttpContextAccessor httpContextAccessor)
+	    public PixelsController(IHttpContextAccessor httpContextAccessor)
 	    {
-	        _cache = cache;
 	        _httpContextAccessor = httpContextAccessor;
 	    }
-		
-        // GET api/pixels/5
-        [HttpGet("{batchNumber}")]
-        public async Task<FileStreamResult> GetAsync(int batchNumber, [FromQuery]DateTime since)
-        {
-            var pixelsUpdatedSince = await PixelFetcher.UpdatedSinceAsync(batchNumber, since);
-            return new FileStreamResult(pixelsUpdatedSince.GetMemoryStream(), "text/plain");
-        }
 
         // POST api/pixels/001/002
         [HttpPost("{x}/{y}")]
@@ -46,16 +35,24 @@ namespace App.Api.Controllers
 			return Ok();
         }
 
+        // GET api/pixels/draw
+        [HttpGet("draw")]
+        public async Task<FileStreamResult> Draw()
+        {
+            return new FileStreamResult(await ImageDraw.Draw.GetMemoryStreamAsync(), "image/png");
+        }
+
         // GET api/pixels/sse
         [HttpGet("sse")]
-        public async Task SseAsync()
+        public async Task SseAsync([FromQuery]int limit)
         {
             var since = DateTime.UtcNow - TimeSpan.FromSeconds(10);
             var response = _httpContextAccessor.HttpContext.Response;
             response.Headers.Add("Content-Type", "text/event-stream");
             response.Headers.Add("X-Accel-Buffering", "no");
 
-            for(var i = 0; i < 20; i++)
+            var seconds = 0;
+            while (true)
             {
                 var task = Task.Delay(TimeSpan.FromSeconds(1));
                 var pixelsUpdatedSinceList = SseFetcher.UpdatedSinceList(since);
@@ -66,6 +63,9 @@ namespace App.Api.Controllers
                 }
                 response.Body.Flush();
                 await task;
+                seconds++;
+                if (limit > 0 && seconds > limit)
+                    break;
             }
         }
     }
