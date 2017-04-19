@@ -12,4 +12,3 @@ echo "Duration = $DURATION"
 ./update-endpoints.sh | vegeta attack -rate=10 -duration=1s > /dev/null 2>&1
 # run the actual test
 ./update-endpoints.sh | vegeta attack -rate="$RATE" -duration="$DURATION" | vegeta report
-
