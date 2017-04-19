@@ -34,7 +34,9 @@ mv ../../../dotnet/src/App/Common/publish dotnet/stage/dotnet/App
 # copy nginx assets
 echo "Building frontend Assets"
 rm -rf nginx/stage/*
-cp -r ../dev/nginx/stage/* nginx/stage/*
+cp -r ../dev/nginx/stage/* nginx/stage
+echo "proxy_pass http://localhost:5000;" > nginx/stage/etc/nginx/include/proxy-local.conf
+printf "calebsplace-prod-headless.default.svc.cluster.local" > nginx/stage/etc/service-name.conf
 mkdir -p nginx/stage/var/www
 cp -r ../../../ui/* nginx/stage/var/www
 

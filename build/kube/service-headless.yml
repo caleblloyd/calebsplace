@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: calebsplace-prod-headless
+spec:
+  clusterIP: None
+  ports:
+    - name: http
+      port: 5000
+      protocol: TCP
+  selector:
+    app: calebsplace-prod

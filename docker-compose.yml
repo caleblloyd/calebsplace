@@ -10,7 +10,7 @@ services:
     links:
       - dotnet
     ports:
-      - "48000:8000"
+      - "48000:80"
     volumes:
       - ./ui:/var/www
 

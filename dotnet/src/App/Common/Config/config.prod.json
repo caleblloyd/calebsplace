@@ -6,7 +6,7 @@
                 "port_file": "/etc/secrets/calebsplace-db/port",
                 "user id_file": "/etc/secrets/calebsplace-db/user",
                 "password_file": "/etc/secrets/calebsplace-db/pass",
-                "database": "calebsplace_alpha",
+                "database": "calebsplace_prod",
                 "ssl mode": "required",
                 "certificate file": "/etc/secrets/calebsplace-db/cert"
             }
