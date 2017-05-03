@@ -3,7 +3,7 @@ version: "3"
 services:
   dotnet:
     build: ./dotnet
-    image: "gcr.io/caleb-lloyd/calebsplace-dotnet:${TAG}"
+    image: "dtr.ddc/caleb-lloyd/calebsplace-dotnet:${TAG}"
   nginx:
     build: ./nginx
-    image: "gcr.io/caleb-lloyd/calebsplace-nginx:${TAG}"
+    image: "dtr.ddc/caleb-lloyd/calebsplace-nginx:${TAG}"

@@ -46,10 +46,10 @@ export TAG=$2
 docker-compose build
 
 # push docker images
-gcloud docker -- push gcr.io/caleb-lloyd/calebsplace-dotnet:$2
-gcloud docker -- push gcr.io/caleb-lloyd/calebsplace-nginx:$2
+docker push dtr.ddc/caleb-lloyd/calebsplace-dotnet:$2
+docker push dtr.ddc/caleb-lloyd/calebsplace-nginx:$2
 
 # deploy to kubernetes
-kubectl set image deployment/calebsplace-$1 \
-    dotnet=gcr.io/caleb-lloyd/calebsplace-dotnet:$2 \
-    nginx=gcr.io/caleb-lloyd/calebsplace-nginx:$2
+#kubectl set image deployment/calebsplace-$1 \
+#    dotnet=gcr.io/caleb-lloyd/calebsplace-dotnet:$2 \
+#    nginx=gcr.io/caleb-lloyd/calebsplace-nginx:$2

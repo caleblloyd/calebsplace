@@ -7,6 +7,8 @@ services:
     container_name: cp-dev-nginx
     environment:
       - DEVENV=dev
+      - BOXBOAT_ICON=./build/docker/boxboat/nginx.png
+      - BOXBOAT_URL=http://dockerhost:48000
     links:
       - dotnet
     ports:
@@ -20,6 +22,8 @@ services:
     environment:
       - DEVENV=dev
       - DOTNET_USE_POLLING_FILE_WATCHER=true
+      - BOXBOAT_ICON=./build/docker/boxboat/netcore.svg
+      - BOXBOAT_URL=http://dockerhost:48010
     links:
       - db
     ports:
@@ -32,6 +36,7 @@ services:
     container_name: cp-dev-db
     environment:
       - MYSQL_ROOT_PASSWORD=test
+      - BOXBOAT_ICON=./build/docker/boxboat/mysql.png
     ports:
       - "48012:3306"
 
@@ -40,6 +45,8 @@ services:
     container_name: cp-dev-phpmyadmin
     environment:
       - MYSQL_ROOT_PASSWORD=test
+      - BOXBOAT_ICON=./build/docker/boxboat/phpmyadmin.png
+      - BOXBOAT_URL=http://dockerhost:48011
     links:
       - db
     ports:
