@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using ImageSharp;
+using ImageSharp.PixelFormats;
 
 namespace App.Api.Repositories
 {
@@ -32,7 +33,7 @@ namespace App.Api.Repositories
                         for (var y = 0; y < PixelFetcher.Pixels; y++)
                         {
                             var color = pixels[x, y].Color;
-                            var imageColor = new Color();
+                            var imageColor = new Rgba32();
                             imageColor.PackFromBytes(color[0], color[1], color[2], 0xFF);
                             imagePixels[x, y] = imageColor;
                         }
