@@ -1,10 +1,9 @@
-version: "3"
+version: "3.1"
 
 services:
 
   nginx:
     build: ./build/docker/dev/nginx
-    container_name: cp-dev-nginx
     environment:
       - DEVENV=dev
       - BOXBOAT_ICON=./build/docker/boxboat/nginx.png
@@ -18,7 +17,6 @@ services:
 
   dotnet:
     build: ./build/docker/dev/dotnet
-    container_name: cp-dev-dotnet
     environment:
       - DEVENV=dev
       - DOTNET_USE_POLLING_FILE_WATCHER=true
@@ -33,7 +31,6 @@ services:
 
   db:
     image: mysql:5.7.17
-    container_name: cp-dev-db
     environment:
       - MYSQL_ROOT_PASSWORD=test
       - BOXBOAT_ICON=./build/docker/boxboat/mysql.png
@@ -42,7 +39,6 @@ services:
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:4.6
-    container_name: cp-dev-phpmyadmin
     environment:
       - MYSQL_ROOT_PASSWORD=test
       - BOXBOAT_ICON=./build/docker/boxboat/phpmyadmin.png
